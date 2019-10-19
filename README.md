@@ -16,5 +16,63 @@ Spark is a tool for doing parallel computation with large datasets and it integr
 - **Connect to a Spark cluster from PySpark by creating an instance of the `SparkContext` class**
 
 ## `SparkContext`
+- SparkContext is the entry point to any spark functionality. When we run any Spark application, a driver program starts, which has the main function and SparkContext gets initiated here. The driver program then runs the operations inside the executors on worker nodes.
+- By default, PySpark has SparkContext available as **`sc`**, so creating a new SparkContext won't work.
+
+```python
+from pyspark import SparkContext
+sc = SparkContext("local", "First App")
+```
+
+## Using Spark DataFrames
+- Spark's core data structure is the Resilient Distributed Dataset(RDD). This is a low level object that lets Spark work its magic by splitting data across multiple nodes in the cluster. However, RDDs are hard to work with directly. Here we are using **`Spark DataFrame abstraction built on top of RDDs`**.
+- Spark DataFrame was designed to behave a lot like a **`SQL table`** (a table with varaibles in the columns and observations in the rows). Not only are they easier to understand, DataFrames are also more optimized for complicated operations than RDDs.
+- When we start modifying and combining columns & rows of data, there are many ways to arrive at the same result, but some often take much longer than others. When using RDDs, its upto the data scientist to figure out the way to optimize the query, but the DataFrame implementation has much of its optimization built in!
+- To start working with SparkDataFrames, we first have to create a **`SparkSession`** object from the **`SparkContext`**. We can think of the **`SparkContext` as the connection to the cluster** and the **`SparkSession`** as the interface with that connection.
+
+
+### Creating SparkSession
+- Use **`SparkSession.builder.getOrCreate()`** method to create `SparkSession`. This returns an existing **`SparkSession`** if there's already one in the environment or creates a new one if necessary.
+
+```python
+from pyspark.sql import SparkSession
+
+my_spark = SparkSession.builder.getOrCreate()
+
+print(my_spark)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
