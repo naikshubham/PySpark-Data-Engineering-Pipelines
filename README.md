@@ -43,6 +43,9 @@ print(my_spark)
 ```
 
 
+### Viewing tables
+- Once we have created a `SparkSession`, we can start poking around to see what data is in the cluster! The `SparkSession` has an attribute called `catlog` which lists all the data inside the cluster. This attribute has a few methods for extracting different pieces of information.
+- One of the most useful is the **`.listTables()`** method, which returns the names of all the tables in the cluster as a list.
 
 
 
