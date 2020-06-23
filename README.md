@@ -48,30 +48,202 @@ print(my_spark)
 - One of the most useful is the **`.listTables()`** method, which returns the names of all the tables in the cluster as a list.
 
 
+### Creating RDDs
+- Parallelizing an exisiting collection of objects
+- From external datasets:
+1. Files in HDFS
+2. Objects in Amazon S3 bucket
+3. lines in a text file
+4. from existing RDDs
 
+#### Parallelized collection
+- `parallelize()` for creating RDDs from python lists
 
+```python
+numRDD = sc.parallellize([1,2,3,4])
+helloRDD = sc.parallelize("Hello World")
+```
 
+#### From external datasets
+- `textFile()` for creating RDDs from external datasets
 
+```python
+fileRDD = sc.textFile("README.md")
+```
 
+#### Understanding Partioning in PySpark
+- A partition is a logical division of a large distributed dataset
+- `parallelize()` method
 
+```python
+numRDD = sc.parallelize(range(10), minPartitions = 6)
 
+fileRDD = sc.textFile("README.md", minPartitions = 6)s
+```
 
+### PySpark operations
+- Transformations create new RDDs
+- Actions perform computation on the RDDs
 
+#### map() transformation
+- map() transformation applies a function to all elements in the RDD
 
+```python
+RDD = sc.parallilize([1,2,3,4])
+RDD_map = RDD.map(lambda x:x*x)
+```
 
+#### flatmap() transformation
+- flatmap() transformation returns multiple values for each element in the original RDD.
 
+<img src="data/flatmap.JPG" width="350" title="flatmap">
 
+```python
+RDD = sc.parallelize(["hello world", "how are you"])
+RDD_flatmap = RDD.flatMap(lambda x:x.split(" "))
+```
 
+#### union() transformation
+- Returns the union of one RDD with another RDD.
 
+<img src="data/union.JPG" width="350" title="union">
 
+```python
+inputRDD = sc.textFile("logs.txt")
+errorRDD = inputRDD.filter(lambda x:"error" in x.split())
+warningRDD = inputRDD.filter(lambda x:"warnings" in x.split())
+combinedRDD = errorRDD.union(warningsRDD)
+```
 
+### RDD Actions
+- Operation return a value after running a computation on the RDD.
+- Basic RDD Actions
+1. collect()
+2. take(N)
+3. first()
+4. count()
 
+#### collect() and take() Actions
+- collect() return all the elements of the dataset as an array.
+- take(N) returns an array with the first N elements of the dataset.
 
+```python
+RDD_map.collect()
 
+RDD_map.take(2)
 
+RDD_map.first()
 
+RDD_flatmap.count()
+```
 
+### Working with Pair RDDs in PySpark
+- Work with RDDs of Key/value pairs, which are common datatype required for many operations in Spark. 
+- **Pair RDD** : Key is the identifier and value is data.
 
+#### Creating pair RDDs
+- From a list of key-value tuple
+- From a regular RDD
+
+```python
+my_tuple = [('Sam', 23), ('Mary', 34), ('Peter', 25)]
+pairRDD_tuple = sc.parallelize(my_tuple)
+
+# create pair RDD from regular RDD
+my_list = ['Sam 23', 'Mary 34', 'Peter 25']
+regularRDD = sc.parallelize(my_list)
+pairRDD_RDD = regularRDD.map(lambda s: (s.plit(' ')[0], s.split(' ')[1]))
+```
+
+#### Transformations on pair RDDs
+- All regular transformations work on pair RDD
+- Have to pass functions that operate on key, value pairs rather than on individual elements
+- Examples of pair RDD transformations
+
+1. reduceByKey(): Combine values with the same key
+2. groupByKey() : Group values with the same key
+3. sortByKey()  : Return an RDD sorted by the key
+4. join()       : Join two pairs RDDs based on their key
+
+#### reduceByKey() transformation
+- It runs parallel operations for each key in the dataset
+- It is a transformation and not action
+
+```python
+regularRDD = sc.parallelize([("Messi", 23), ("Ronaldo", 34), ("Neymar", 22), ("Messi", 24)])
+pairRDD_reducebykey = regularRDD.reduceByKey(lambda x,y : x+y)
+pairRDD_reducebykey.collect()
+```
+
+#### sortByKey() transformation
+- `sortByKey()` operation orders pair RDD by key
+- It returns an RDD sorted by key in ascending or descending order
+
+```python
+pairRDD_reduceByKey_rev = pairRDD_reducebykey.map(lambda x: (x[1], x[0]))
+pairRDD_reducebykey_rev.sortByKey(ascending=False).collect()
+```
+
+#### groupByKey() transformation
+- `groupByKey()` groups all the values with the same key in the pair RDD
+
+```python
+airports = [('US':'JFK'), ('UK':'LHR'), ('FR':'CDG'), ('US':'SFO')]
+regularRDD = sc.parallelize(airports)
+pairRDD_group = regularRDD.groupByKey().collect()
+for cont, air in pairRDD_group:
+    print(cont, list(air))
+```
+
+#### join() transformation
+- joins the two pair RDDs based on their key
+
+```python
+RDD1 = sc.parallelize([("Messi", 34), ("Ronaldo", 32), ("Neymar", 24)])
+RDD2 = sc.parallelize([("Ronaldo", 80), ("Neymar", 120), ("Messi", 100)])
+
+RDD1.join(RDD2).collect()
+```
+
+### Advanced RDD Actions
+
+#### reduce() action
+- reduce(func) action is used for aggregating the elements of a regular RDD.
+- The function should be commutative(changing the order of the operands does not change the result) and associative
+
+```python
+x = [1,3,4,6]
+RDD = sc.parallelize(x)
+RDD.reduce(lambda x,y : x+y)
+```
+
+#### saveAsTextFile() action
+- It is not advisable to run collect action on RDDs because of the huge size of the data. In these case, it's common to write data out to a distributed storage systems such as HDFS or Amazon S3.
+- `saveAsTextFile()` action saves RDD into a text file inside a directory with each partition as a separate file.
+- `coalesce()` method can be used to save RDD as a single text file.
+
+```python
+RDD.saveAsTextFile("tempFile")
+
+RDD.coalesce(1).saveAsTextFile("tempFile")
+```
+
+#### countByKey() action
+- `countByKey()` only available for type(K,V). countByKey should only be used on a dataset whose size is small enough to fit in memory.
+- It counts the number of elements for each key.
+
+```python
+rdd = sc.parallelize([("a", 1), ("b", 1) , ("a", 1)])
+for key, val in rdd.countByKey().items():
+    print(key, val)
+```
+
+#### collectAsMap() action
+- Returns the key-value pairs in the RDD as a dictionary
+
+```python
+sc.parallelize([(1,2), (3,4)]).collectAsMap()
+```
 
 
 
