@@ -245,6 +245,136 @@ for key, val in rdd.countByKey().items():
 sc.parallelize([(1,2), (3,4)]).collectAsMap()
 ```
 
+### PySpark DataFrames
+- PySpark SQL is Spark's high level API for working with structured data. PySpark SQL is a Spark Library for structured data. It provides more info about the structure of data and computation.
+- PySpark SQL provides a programming abstraction called DataFrames. A DataFrame is an immutable distributed collection of data with named columns. It is similar to a table in SQL.
+- DataFrames are designed to process a large collection of structured data such as relational database and semi-structured data such as JSON. 
+- DataFrames in PySpark support both SQL queries `(SELECT * from table)` or expression methods `(df.select())`
+
+#### SparkSession - Entry point for DataFrame API
+- SparkContext is the main entry point for creating RDDs.
+- Similarlily, **SparkSession** provides a single point of entry to interact with Spark DataFrames.
+- The SparkSession does for DataFrames what the SparkContext does for RDDs.
+- SparkSession is used to create DataFrame, register DataFrames, execute SQL queries.
+- SparkSession is available in PySpark shell as **spark**
+
+#### Creating DataFrames in PySpark
+- Two different methods of creating DataFrames in PySpark.
+
+1. From existing RDDs using SparkSession's DataFrame() method
+2. From various data sources (CSV, JSON, TXT) using SparkSession's read method.
+
+- Schema is the structure of data in DataFrame and helps Spark to optimize queries on the data more efficiently. Schema provides details such as column name, the type of data in the column, and whether null or empty values are allowed in the column.
+
+#### Creating a DataFrame from RDD
+- Pass an RDD and a schema into SparkSession's create DataFrame method.
+
+```python
+iphones_RDD = sc.parallelize([("XS", 2018, 5.65, 2.79, 6.24),
+                              ("XR", 2018, 5.94, 2.98, 6.84)])
+names = ['Model', 'Year', 'Height', 'Width', 'Weight']
+
+iphones_df = spark.createDataFrame(iphones_RDD, schema=names)
+type(iphones_df)
+```
+
+#### Create a DataFrame from reading a CSV/JSON/TXT
+
+```python
+df_csv = spark.read.csv("people.csv", header=True, inferSchema=True)
+
+df_json = spark.read.json("people.json", header=True, inferSchema=True)
+
+df_txt = spark.read.txt("people.txt", header=True, inferSchema=True)
+```
+
+### Interacting with PySpark DataFrames
+- PySpark DataFrame provides operations to filter, group, or compute aggregates, and can be used with PySpark SQL.
+- DataFrame Transformations : select, filter, groupby, orderby, dropDuplicates, withColumnRenamed, printSchema, show ,count ,columns, describe.
+
+#### select() and show() operations
+- `select()` transformation subsets the columns in the DataFrame.
+- `show()` action prints first 20 rows in the DataFrame
+
+```python
+df_id_age = test.select('Age')
+df_id_age.show(3)
+```
+
+#### filter() and show() operations
+- `filter()` transformation filters out the rows based on a condition.
+
+```python
+new_df_age21 = new_df.filter(new_df.Age > 21)
+new_df_age21.show(3)
+```
+
+#### groupby() and count() operations
+- `groupby()` operation can be used to group a variable
+
+```python
+test_df_age_group = test_df.groupby("Age")
+test_df_age_group.count().show(3)
+```
+
+#### orderby() transformation
+- `oederby()` transformation sorts the DataFrame based on one or more columns.
+
+```python
+test_df_age_group.count().orderBy('Age').show(3)
+```
+
+#### dropDuplicates()
+- `dropDuplicates()` removes the duplicate rows of a DataFrame
+
+```python
+test_df_no_dup = test_df.select('User_ID', 'Gender', 'Age').dropDuplicates()
+test_df_no_dup.count()
+```
+
+#### withColumnRenamed Transformations
+- `withColumnRenamed()` renames a column in the DataFrame
+
+```python
+test_df_sex = test_df.withColumnRenamed('Gender', 'Sex')
+test_df_sex.show(3)
+```
+
+#### printSchema(), columns, describe()
+- `printSchema()` operation prints the types of columns in the DataFrame
+- `describe()` operation computes summary statistics of numerical columns in the DataFrame
+
+```python
+test_df.printSchema()
+test_df.columns
+test_df.describe().show()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
